@@ -92,7 +92,7 @@ export default function PriceChart({ levels }: { levels: Levels | null }) {
     cs.setData(data.candles.map((c) => ({ ...c, time: c.time as UTCTimestamp })));
     candleRef.current = cs;
     for (const [k, col] of [["ema20", C.e20], ["ema50", C.e50], ["ema200", C.e200]] as const) {
-      const s = chart.addSeries(LineSeries, { color: col, lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+      const s = chart.addSeries(LineSeries, { color: col, lineWidth: 1, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, autoscaleInfoProvider: () => null });
       s.setData(pts(data[k]));
     }
     const zp = new ZonesPrimitive();
@@ -107,12 +107,12 @@ export default function PriceChart({ levels }: { levels: Levels | null }) {
         shape: (e.direction === "LONG" ? "arrowUp" : "arrowDown") as "arrowUp" | "arrowDown",
         text: e.type,
       })),
-      ...data.sweeps.map((s) => ({
+      ...data.sweeps.filter((s) => !s.levelName.includes("SWING")).slice(-12).map((s) => ({
         time: s.time as UTCTimestamp,
         position: (s.direction === "LONG" ? "belowBar" : "aboveBar") as "belowBar" | "aboveBar",
         color: "#e0a84a",
         shape: "circle" as const,
-        text: `sweep ${s.levelName}`,
+        text: s.levelName,
       })),
     ].sort((a, b) => (a.time as number) - (b.time as number));
     createSeriesMarkers(cs, markers);
@@ -127,10 +127,7 @@ export default function PriceChart({ levels }: { levels: Levels | null }) {
     chart.addSeries(LineSeries, { color: C.e50, lineWidth: 1, priceLineVisible: false, lastValueVisible: false }, 2).setData(pts(data.macdSignal));
     chart.addSeries(LineSeries, { color: "#7b869a", lineWidth: 1, priceLineVisible: false, priceFormat: { type: "price", precision: 3, minMove: 0.001 } }, 3).setData(pts(data.atr));
     const panes = chart.panes();
-    panes[0]?.setHeight(400);
-    panes[1]?.setHeight(80);
-    panes[2]?.setHeight(80);
-    panes[3]?.setHeight(60);
+    [5, 1.1, 1.1, 0.8].forEach((f, k) => panes[k]?.setStretchFactor(f));
     chart.timeScale().scrollToRealTime();
     return () => { chart.remove(); chartRef.current = null; candleRef.current = null; };
   }, [data]);
@@ -158,7 +155,7 @@ export default function PriceChart({ levels }: { levels: Levels | null }) {
           <span><i style={{ background: C.e50 }} />EMA50</span>
           <span><i style={{ background: C.e200 }} />EMA200</span>
           <span>▭ FVG / OB</span>
-          <span style={{ color: "#e0a84a" }}>● sweep</span>
+          <span style={{ color: "#e0a84a" }}>● sweep sesión/PDH-PDL</span>
           <span>RSI · MACD · ATR</span>
         </div>
         <div className="tfs">

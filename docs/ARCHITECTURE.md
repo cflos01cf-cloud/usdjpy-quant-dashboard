@@ -6,7 +6,7 @@
 |---|---|---|
 | Motor en vivo | Next.js 16 + TypeScript, Netlify (función programada cada 5 min) | Mismo stack que EUR/USD, XAU y Oil; despliegue y operación ya conocidos. |
 | Persistencia | Supabase (PostgreSQL) | Caché compartido de velas, señales, paper trades, estado de riesgo. |
-| Research | Paquete Python (`research/`) con pandas/numpy/scikit-learn | Backtest, walk-forward, Monte Carlo y ML corren offline; no necesitan servidor 24/7. |
+| Research | Paquete Python (`research/`) con pandas/numpy/scikit-learn | Backtest, walk-forward, Monte Carlo y ML corren offline. **Las señales del backtest las genera el mismo motor TS que corre en vivo** (`web/scripts/backtest-export.ts`), así no hay un port a Python que pueda divergir. |
 | Datos | TwelveData (`USD/JPY`), cuenta exclusiva | Plan gratuito: 8 req/min, 800 créditos/día → presupuesto de créditos en §4. |
 | Broker | Exness (parámetros en `lib/config.ts`) | Spread, comisión y contrato configurables (Standard vs Raw Spread). |
 | Calendario | Feed semanal de ForexFactory (JSON público) + tabla manual en Supabase | Sin inventar noticias: cada evento guarda fuente y hora de obtención. Intervenciones/BOJ se pueden registrar a mano. |
@@ -104,3 +104,5 @@ Ver `supabase/schema.sql`: `candles_cache`, `engine_snapshots`, `signals`, `sign
 - **Purged walk-forward con embargo**: evita fuga de información entre ventanas solapadas.
 - **Bootstrap Monte Carlo** de la secuencia de R: distribución de drawdown y probabilidad de tocar el límite de pérdida.
 - **Objetivo robusto**: la optimización maximiza expectativa neta en R penalizando pocos trades y drawdown, y se elige la región de parámetros estable (vecindad), no el pico.
+
+- **Una sola fuente de verdad para las señales**: en lugar de portar el motor a Python (lo que pide el prompt original), el backtest ejecuta el código TS de producción vela a vela y exporta candidatas con varias variantes de salida ya simuladas. Python aplica umbrales, reglas de riesgo y validación. Prueba de fuga: sobre un random walk sin costos la expectativa sale negativa (≈ −0.2 R por el supuesto conservador de SL primero), no positiva.

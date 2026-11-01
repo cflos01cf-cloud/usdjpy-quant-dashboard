@@ -333,6 +333,7 @@ function Backtest({ bt }: { bt: Any }) {
     <section className="panel">
       <header><h2>Backtest · Walk-forward · Monte Carlo</h2>{bt?.generatedAt && <span className="muted" style={{ fontSize: 12 }}>{bt.dataRange} · generado {bt.generatedAt?.slice(0, 10)}</span>}</header>
       <div className="body">
+        {bt?.synthetic && <div className="blocked" style={{ marginBottom: 8 }}>⚠️ Resultados sobre datos SINTÉTICOS: sólo prueban el pipeline, no dicen nada del mercado real.</div>}
         {!bt?.available ? <div className="empty">{bt?.note ?? "Sin resultados."}</div> : (
           <div className="row2">
             <div>
@@ -346,6 +347,7 @@ function Backtest({ bt }: { bt: Any }) {
               </tbody></table>
               {bt.monteCarlo && <div className="muted num" style={{ fontSize: 12, marginTop: 8 }}>Monte Carlo ({bt.monteCarlo.runs} sims): DD p95 {p1(bt.monteCarlo.ddP95, 1)}R · prob. resultado negativo {p1(bt.monteCarlo.probNegative * 100, 1)}%</div>}
               {bt.recommended && <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>Recomendada: {JSON.stringify(bt.recommended)}</div>}
+              {bt.ml && <div className="muted num" style={{ fontSize: 12, marginTop: 6 }}>Filtro ML (meta-labeling): {p1(bt.ml.base?.expectancyR, 3)}R → {p1(bt.ml.ml?.expectancyR, 3)}R · {bt.ml.recommendation}</div>}
               {bt.scoreBands && <div className="muted num" style={{ fontSize: 12, marginTop: 6 }}>Por banda de score: {Object.entries(bt.scoreBands).map(([k, v]: Any) => `${k}: ${p1(v.expectancyR, 2)}R (${v.trades})`).join(" · ")}</div>}
             </div>
           </div>

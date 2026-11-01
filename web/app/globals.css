@@ -52,7 +52,7 @@ html, body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.
 .tfs button.on { background: var(--panel-2); color: var(--text); }
 .legend { display: flex; gap: 12px; font-size: 11px; color: var(--muted); flex-wrap: wrap; }
 .legend i { display: inline-block; width: 10px; height: 2px; vertical-align: middle; margin-right: 4px; }
-.chart { height: 640px; }
+.chart { height: 720px; }
 
 table.kv { width: 100%; border-collapse: collapse; }
 table.kv td { padding: 5px 0; border-bottom: 1px solid var(--line); vertical-align: top; }

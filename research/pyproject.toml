@@ -1,0 +1,12 @@
+[project]
+name = "usdjpy-research"
+version = "0.1.0"
+description = "Backtest, walk-forward, Monte Carlo y ML para el motor USD/JPY"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.26", "pandas>=2.1", "scikit-learn>=1.4", "requests>=2.31"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

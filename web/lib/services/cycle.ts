@@ -115,7 +115,7 @@ export async function runCycle(opts: { force?: boolean } = {}): Promise<CycleRes
   const rsRow = (await db().from("risk_state").select("state").eq("id", 1).maybeSingle()).data;
   let risk: RiskState = rsRow?.state ?? emptyRiskState(dKey, wKey);
   const prevPause = risk.pausedUntil;
-  if (risk.dayKey !== dKey) risk = { ...risk, dayKey: dKey, realizedDayPct: 0, tradesToday: 0, pausedUntil: null, pauseReason: null, consecutiveLosses: risk.consecutiveLosses };
+  if (risk.dayKey !== dKey) risk = { ...risk, dayKey: dKey, realizedDayPct: 0, tradesToday: 0, pausedUntil: null, pauseReason: null, consecutiveLosses: 0 }; // la pausa por racha dura el resto del día
   if (risk.weekKey !== wKey) risk = { ...risk, weekKey: wKey, realizedWeekPct: 0 };
 
   // ── 5. Seguimiento de paper trades abiertos con velas M1
@@ -247,7 +247,7 @@ function sessionStats(h1: Candle[]) {
   return out;
 }
 
-function buildSnapshot(x: {
+export function buildSnapshot(x: {
   now: number; status: DataStatus; ctx: EngineContext; result: EvaluationResult; settings: Settings; risk: RiskState;
   newsState: ReturnType<typeof newsStateAt>; news: Awaited<ReturnType<typeof loadNews>>; macro: Awaited<ReturnType<typeof loadMacro>>;
   reports: QualityReport[]; errors: string[]; candles: Partial<Record<Timeframe, Candle[]>>; gate: string[];
