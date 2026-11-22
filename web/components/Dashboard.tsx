@@ -225,7 +225,7 @@ function Risk({ s }: { s: Any }) {
       <header><h2>Gestión de riesgo</h2></header>
       <div className="body">
         <table className="kv num"><tbody>
-          <tr><td className="muted">Capital</td><td>{cfg ? `${cfg.equity.toLocaleString()} ${cfg.accountCurrency}` : "—"}</td></tr>
+          <tr><td className="muted">Capital</td><td>{cfg ? `${cfg.equity.toLocaleString("es-MX")} ${cfg.accountCurrency}` : "—"}</td></tr>
           <tr><td className="muted">Riesgo por operación</td><td>{cfg?.riskPerTradePct}%</td></tr>
           <tr><td className="muted">P&L hoy / límite</td><td className={st?.realizedDayPct < 0 ? "short" : ""}>{p1(st?.realizedDayPct, 2)}% / −{cfg?.maxDailyRiskPct}%</td></tr>
           <tr><td className="muted">P&L semana / límite</td><td className={st?.realizedWeekPct < 0 ? "short" : ""}>{p1(st?.realizedWeekPct, 2)}% / −{cfg?.maxWeeklyLossPct}%</td></tr>
