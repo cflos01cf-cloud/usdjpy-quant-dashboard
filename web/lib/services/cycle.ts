@@ -201,7 +201,8 @@ export async function runCycle(opts: { force?: boolean } = {}): Promise<CycleRes
 }
 
 async function saveSnapshot(status: DataStatus, snapshot: unknown) {
-  await db().from("engine_snapshots").insert({ data_status: status, snapshot });
+  const { error } = await db().from("engine_snapshots").insert({ data_status: status, snapshot });
+  if (error) throw new Error(`Supabase (engine_snapshots): ${error.message}`);
 }
 
 function signalRow(s: Signal) {

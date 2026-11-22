@@ -8,6 +8,10 @@ export const maxDuration = 30;
 /** Ejecuta un ciclo manual (requiere x-admin-token). */
 export async function POST(req: Request) {
   if (!isAdmin(req)) return NextResponse.json({ error: "no autorizado" }, { status: 401 });
-  const r = await runCycle({ force: new URL(req.url).searchParams.get("force") === "1" });
-  return NextResponse.json(r);
+  try {
+    const r = await runCycle({ force: new URL(req.url).searchParams.get("force") === "1" });
+    return NextResponse.json(r);
+  } catch (e) {
+    return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+  }
 }
