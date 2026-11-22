@@ -9,7 +9,9 @@ export function db(): SupabaseClient {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) throw new Error("Faltan SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY");
-  client = createClient(url, key, { auth: { persistSession: false } });
+  // Esquema propio (`usdjpy`) para convivir con otros proyectos en la misma base.
+  const schema = process.env.SUPABASE_SCHEMA || "usdjpy";
+  client = createClient(url, key, { auth: { persistSession: false }, db: { schema } }) as unknown as SupabaseClient;
   return client;
 }
 

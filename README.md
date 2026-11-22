@@ -16,7 +16,7 @@ supabase/schema.sql
 
 ## Puesta en marcha
 
-1. **Supabase**: crea un proyecto, ejecuta `supabase/schema.sql` en el SQL Editor.
+1. **Supabase** (nuevo o existente): ejecuta `supabase/schema.sql` en el SQL Editor y agrega `usdjpy` en *Settings → API → Exposed schemas*. Todo vive en el esquema `usdjpy`, sin tocar `public`.
 2. **Telegram**: crea un bot con @BotFather y obtén tu `chat_id`.
 3. **Netlify**: nuevo sitio desde este repo, *Base directory* = `web`. Variables de entorno (ver `web/.env.example`):
    `TWELVEDATA_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `ADMIN_TOKEN`, `PUBLIC_URL`, opcional `FRED_API_KEY`, `BROKER_PRESET` (`EXNESS_STANDARD` o `EXNESS_RAW`), `ACCOUNT_EQUITY`.
