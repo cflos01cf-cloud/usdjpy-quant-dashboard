@@ -48,13 +48,8 @@ export async function runCycle(opts: { force?: boolean } = {}): Promise<CycleRes
   const inWindow = hourUtc >= ENGINE_WINDOW_UTC.start && hourUtc < ENGINE_WINDOW_UTC.end;
   if (isMarketClosed(now) || (!inWindow && !opts.force)) {
     const st: DataStatus = isMarketClosed(now) ? "MARKET_CLOSED" : "HISTORICAL";
-    const rs = (await db().from("risk_state").select("state").eq("id", 1).maybeSingle()).data?.state ?? emptyRiskState(tradingDayKey(now), weekKey(now));
-    await saveSnapshot(st, {
-      status: st, generatedAt: now, session: sessionInfo(now), schedule: sessionScheduleCdmx(now),
-      note: st === "MARKET_CLOSED" ? "Mercado FX cerrado" : "Fuera de la ventana operativa del motor",
-      risk: { state: rs, config: settings.risk, gate: riskGate(rs, settings.risk, now) },
-      broker: settings.broker,
-    });
+    const r = await offHoursSnapshot(now, st, settings, apiKey, errors);
+    credits += r.credits;
     return finish(st);
   }
   if (!apiKey) {
@@ -206,6 +201,73 @@ export async function runCycle(opts: { force?: boolean } = {}): Promise<CycleRes
   }
 }
 
+/** Último instante en que el mercado estuvo abierto (cierre del viernes 17:00 NY) si ahora está cerrado. */
+function lastMarketClose(now: number): number {
+  let t = now - (now % 60);
+  for (let i = 0; i < 24 * 4 && isMarketClosed(t); i++) t -= 3600;
+  while (!isMarketClosed(t + 60)) t += 60;
+  return t + 60;
+}
+
+/**
+ * Fuera de horario: muestra el último estado conocido con estado MARKET_CLOSED / HISTORICAL.
+ * Si el mercado está cerrado y el caché es anterior al cierre (o no existe), descarga UNA vez
+ * las velas del cierre (≈6 créditos). Nunca genera señales ni simula precios.
+ */
+async function offHoursSnapshot(now: number, st: DataStatus, settings: Settings, apiKey: string | undefined, errors: string[]) {
+  let credits = 0;
+  const rs: RiskState = (await db().from("risk_state").select("state").eq("id", 1).maybeSingle()).data?.state ?? emptyRiskState(tradingDayKey(now), weekKey(now));
+  const base = {
+    status: st, generatedAt: now, session: sessionInfo(now), schedule: sessionScheduleCdmx(now),
+    note: st === "MARKET_CLOSED" ? "Mercado FX cerrado · mostrando el último cierre" : "Fuera de la ventana operativa del motor · mostrando el último dato",
+    risk: { state: rs, config: settings.risk, gate: riskGate(rs, settings.risk, now) },
+    broker: settings.broker,
+  };
+  const cacheRows = must(await db().from("candles_cache").select("*"), "candles_cache") as { tf: Timeframe; candles: Candle[]; fetched_at: string }[];
+  const cache = new Map(cacheRows.map((r) => [r.tf, r]));
+  const closeT = st === "MARKET_CLOSED" ? lastMarketClose(now) : null;
+  const candles: Partial<Record<Timeframe, Candle[]>> = {};
+  const reports: QualityReport[] = [];
+  for (const tf of ALL_TF) {
+    const c = cache.get(tf);
+    const stale = !c || (closeT !== null && Date.parse(c.fetched_at) / 1000 < closeT);
+    let raw: Candle[] | null = null;
+    if (stale && apiKey && closeT !== null) {
+      try {
+        raw = await fetchCandles(tf, FETCH_PLAN[tf].outputsize, apiKey);
+        credits++;
+      } catch (e) {
+        errors.push(`${tf}: ${(e as Error).message}`);
+      }
+    }
+    const v = validateCandles(tf, raw ?? c?.candles ?? [], now);
+    reports.push(v.report);
+    candles[tf] = v.candles;
+    if (raw && v.candles.length) await db().from("candles_cache").upsert({ tf, candles: v.candles, fetched_at: new Date(now * 1000).toISOString(), last_close: v.report.lastClose });
+  }
+  if (!candles.M5?.length || !candles.M15?.length) {
+    if (!apiKey) errors.push("Falta TWELVEDATA_API_KEY");
+    await saveSnapshot(st, { ...base, errors, quality: reports });
+    return { credits };
+  }
+  await refreshNews(settings.news).catch(() => undefined);
+  const news = await loadNews(now - 6 * 3600, now + 7 * 86400).catch(() => []);
+  const newsState = newsStateAt(news, now, settings.news);
+  const macro = await loadMacro().catch(() => null);
+  const m1 = candles.M1 ?? [];
+  const prepared = prepare(candles);
+  const ctx = contextAt(prepared, candles.M5.length - 1, settings.broker.typicalSpreadPips, m1.length ? m1[m1.length - 1].close : undefined);
+  if (!ctx) {
+    await saveSnapshot(st, { ...base, errors, quality: reports });
+    return { credits };
+  }
+  // evaluación sólo informativa: dataLive=false bloquea cualquier señal
+  const result = evaluate({ ctx, news: newsState, signalCfg: settings.signal, broker: settings.broker, riskCfg: settings.risk, riskState: rs, recentKeys: new Map(), live: true, dataLive: false });
+  const snap = buildSnapshot({ now, status: st, ctx, result, settings, risk: rs, newsState, news, macro, reports, errors, candles, gate: riskGate(rs, settings.risk, now) });
+  await saveSnapshot(st, { ...snap, note: base.note, session: base.session });
+  return { credits };
+}
+
 async function saveSnapshot(status: DataStatus, snapshot: unknown) {
   const { error } = await db().from("engine_snapshots").insert({ data_status: status, snapshot });
   if (error) throw new Error(`Supabase (engine_snapshots): ${error.message}`);
@@ -262,7 +324,9 @@ export function buildSnapshot(x: {
   const { ctx, result } = x;
   const L = ctx.m15Levels[ctx.tf.M15!.i];
   const d1 = x.candles.D1 ?? [];
-  const prevClose = d1.length >= 1 ? d1[d1.length - 1].close : null; // última D1 cerrada
+  // variación vs. cierre del día anterior: con mercado cerrado la última D1 ya es la del viernes
+  const refIdx = x.status === "MARKET_CLOSED" ? d1.length - 2 : d1.length - 1;
+  const prevClose = refIdx >= 0 ? d1[refIdx].close : null;
   const v15 = ctx.tf.M15!;
   const trends = Object.fromEntries(ALL_TF.filter((tf) => ctx.tf[tf]).map((tf) => [tf, ctx.tf[tf]!.trend]));
   const htf = [ctx.tf.D1, ctx.tf.H4, ctx.tf.H1].map((v) => (v ? trendToDir(v.trend) : null));
