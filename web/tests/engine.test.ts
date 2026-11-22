@@ -99,13 +99,13 @@ describe("sesiones con horario de verano", () => {
 });
 
 describe("riesgo", () => {
-  const broker = BROKER_PRESETS.EXNESS_STANDARD;
+  const broker = BROKER_PRESETS.GENERIC;
   it("valor del pip USD/JPY = 1000/precio USD por lote", () => {
     expect(pipValuePerLot(150, broker, DEFAULT_RISK)).toBeCloseTo(6.6667, 3);
   });
   it("tamaño de posición incluye costos y redondea hacia abajo", () => {
     const ps = positionSize(150, 149.8, broker, DEFAULT_RISK); // 20 pips
-    // 50 USD / ((20 + 1.1 + 0.6) × 6.667) = 0.3456 → 0.34
+    // 50 USD / ((20 + 1.0 + 0.6) × 6.667) = 0.347 → 0.34
     expect(ps.lots).toBe(0.34);
     expect(ps.riskAmount).toBeLessThanOrEqual(50);
   });
@@ -120,7 +120,7 @@ describe("riesgo", () => {
 describe("simulación de operaciones", () => {
   const base = utc(2026, 3, 10, 13, 0); // martes, NY abierto
   const sig = { id: "x", direction: "LONG", entry: 150, stop: 149.8, tp1: 150.4, tp2: 150.6, tp3: 150.8, createdAt: base, validUntil: base + 3600 } as unknown as Signal;
-  const params = { broker: BROKER_PRESETS.EXNESS_RAW, cfg: DEFAULT_SIGNAL, spreadPips: 0, tfSec: 60, atr: 0.15 };
+  const params = { broker: { ...BROKER_PRESETS.GENERIC, commissionPerLotPerSide: 3.5 }, cfg: DEFAULT_SIGNAL, spreadPips: 0, tfSec: 60, atr: 0.15 };
   const bar = (i: number, o: number, h: number, l: number, c: number) => ({ time: base + i * 60, open: o, high: h, low: l, close: c });
   it("TP1 → BE: el resto sale en break-even", () => {
     let t = newTrade(sig, DEFAULT_SIGNAL);
@@ -167,7 +167,7 @@ describe("motor completo", () => {
     let produced = 0;
     for (let i = cut - 300; i < cut; i += 3) {
       const a = contextAt(full, i, 1.0)!, b = contextAt(pre, i, 1.0)!;
-      const opts = { news: { blocked: false, nearHighImpact: false }, signalCfg: DEFAULT_SIGNAL, broker: BROKER_PRESETS.EXNESS_STANDARD, riskCfg: DEFAULT_RISK, riskState: null, recentKeys: new Map(), live: false, dataLive: true };
+      const opts = { news: { blocked: false, nearHighImpact: false }, signalCfg: DEFAULT_SIGNAL, broker: BROKER_PRESETS.GENERIC, riskCfg: DEFAULT_RISK, riskState: null, recentKeys: new Map(), live: false, dataLive: true };
       const ea = evaluate({ ctx: a, ...opts }), eb = evaluate({ ctx: b, ...opts });
       expect(ea.evals.map((e) => e.score.total)).toEqual(eb.evals.map((e) => e.score.total));
       expect(ea.signal?.id ?? null).toEqual(eb.signal?.id ?? null);

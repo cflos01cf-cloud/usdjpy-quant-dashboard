@@ -85,7 +85,7 @@ create table if not exists usdjpy.risk_state (
 
 create table if not exists usdjpy.settings (
   id int primary key default 1,
-  broker_preset text not null default 'EXNESS_STANDARD',
+  broker_preset text not null default 'GENERIC',
   risk jsonb not null default '{}'::jsonb,       -- sobrescribe DEFAULT_RISK
   signal jsonb not null default '{}'::jsonb,     -- sobrescribe DEFAULT_SIGNAL
   news jsonb not null default '{}'::jsonb,       -- sobrescribe DEFAULT_NEWS

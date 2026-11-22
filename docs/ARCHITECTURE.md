@@ -8,7 +8,7 @@
 | Persistencia | Supabase (PostgreSQL) | Caché compartido de velas, señales, paper trades, estado de riesgo. |
 | Research | Paquete Python (`research/`) con pandas/numpy/scikit-learn | Backtest, walk-forward, Monte Carlo y ML corren offline. **Las señales del backtest las genera el mismo motor TS que corre en vivo** (`web/scripts/backtest-export.ts`), así no hay un port a Python que pueda divergir. |
 | Datos | TwelveData (`USD/JPY`), cuenta exclusiva | Plan gratuito: 8 req/min, 800 créditos/día → presupuesto de créditos en §4. |
-| Broker | Exness (parámetros en `lib/config.ts`) | Spread, comisión y contrato configurables (Standard vs Raw Spread). |
+| Broker | Ninguno por ahora: el sistema no envía órdenes | Perfil de costos genérico en `lib/config.ts` (spread, comisión, slippage) para R:R neto, sizing y paper trading. |
 | Calendario | Feed semanal de ForexFactory (JSON público) + tabla manual en Supabase | Sin inventar noticias: cada evento guarda fuente y hora de obtención. Intervenciones/BOJ se pueden registrar a mano. |
 | Macro | FRED (DGS2, DGS10, IRLTLT01JPM156N) | Diferencial de tasas EE. UU.–Japón como contexto D1. Opcional (requiere `FRED_API_KEY`). |
 | Gráficos | lightweight-charts v5 | Velas reales + EMAs + marcadores BOS/CHoCH/sweep + zonas FVG/OB (primitiva propia). |
@@ -92,7 +92,7 @@ Ver `supabase/schema.sql`: `candles_cache`, `engine_snapshots`, `signals`, `sign
 | 3 | Indicadores | ✅ con tests |
 | 4 | SMC (swings, BOS, CHoCH, FVG, OB, sweeps, EQH/EQL) | ✅ con tests |
 | 5 | Estrategias A–E + scoring + señales | ✅ |
-| 6 | Riesgo (sizing Exness, límites, kill switch, BE, trailing, parciales) | ✅ |
+| 6 | Riesgo (sizing, límites, kill switch, BE, trailing, parciales) | ✅ |
 | 7 | Backtest, walk-forward, Monte Carlo, ML (Python) | ✅ código; correr con histórico real |
 | 8 | Telegram | ✅ requiere bot token |
 | 9 | Paper trading | ✅ |

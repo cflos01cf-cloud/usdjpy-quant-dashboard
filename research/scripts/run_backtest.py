@@ -32,7 +32,7 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--m5"); ap.add_argument("--m1"); ap.add_argument("--csv")
     ap.add_argument("--download", action="store_true"); ap.add_argument("--start", default="2024-01-01")
-    ap.add_argument("--spread", type=float, default=1.1); ap.add_argument("--broker", default="EXNESS_STANDARD")
+    ap.add_argument("--spread", type=float, default=1.0); ap.add_argument("--broker", default="GENERIC")
     ap.add_argument("--is-days", type=int, default=180); ap.add_argument("--oos-days", type=int, default=60)
     ap.add_argument("--min-trades", type=int, default=20)
     ap.add_argument("--label", default=None, help="Etiqueta del origen de datos (aparece en el reporte)")

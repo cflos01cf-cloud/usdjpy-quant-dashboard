@@ -4,7 +4,7 @@
  * registra cada candidata por umbral de score y simula su ejecución con varias variantes de salida.
  * Python (research/) aplica umbrales, límites de riesgo, walk-forward, Monte Carlo y ML sobre este archivo.
  *
- * Uso: npx tsx scripts/backtest-export.ts --m5 m5.json [--m1 m1.json] --out candidates.jsonl [--spread 1.1] [--broker EXNESS_STANDARD]
+ * Uso: npx tsx scripts/backtest-export.ts --m5 m5.json [--m1 m1.json] --out candidates.jsonl [--spread 1.1] [--broker GENERIC]
  * Formato de entrada: JSON [{time,open,high,low,close}] con time en segundos UTC (apertura de la vela).
  */
 import { readFileSync, createWriteStream } from "node:fs";
@@ -19,7 +19,7 @@ const args = Object.fromEntries(process.argv.slice(2).reduce<[string, string][]>
 const m5: Candle[] = JSON.parse(readFileSync(args.m5, "utf8"));
 const m1: Candle[] | null = args.m1 ? JSON.parse(readFileSync(args.m1, "utf8")) : null;
 const spread = Number(args.spread ?? 1.1);
-const broker = BROKER_PRESETS[args.broker ?? "EXNESS_STANDARD"];
+const broker = BROKER_PRESETS[args.broker ?? "GENERIC"];
 const out = createWriteStream(args.out);
 
 function aggregate(src: Candle[], tf: number, offset = 0): Candle[] {

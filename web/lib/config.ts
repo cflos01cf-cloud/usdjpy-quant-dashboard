@@ -21,33 +21,25 @@ export interface BrokerConfig {
 }
 
 /**
- * Valores de referencia para Exness. VERIFICA en tu terminal los de tu tipo de cuenta
- * (Especificaciones del contrato): cambian por cuenta y por horario.
+ * Sin broker conectado: el motor NO envía órdenes a ningún lado. Estos costos sólo se usan para
+ * calcular R:R neto, tamaño de posición y resultados de paper trading. Valores conservadores típicos
+ * de USD/JPY; ajústalos cuando elijas dónde ejecutar.
  */
 export const BROKER_PRESETS: Record<string, BrokerConfig> = {
-  EXNESS_STANDARD: {
-    name: "Exness Standard",
+  GENERIC: {
+    name: "Sin broker (costos genéricos)",
     accountType: "STANDARD",
     contractSize: 100_000,
     minLot: 0.01,
     lotStep: 0.01,
-    typicalSpreadPips: 1.1,
+    typicalSpreadPips: 1.0,
     maxSpreadPips: 2.5,
     commissionPerLotPerSide: 0,
     slippagePips: 0.3,
   },
-  EXNESS_RAW: {
-    name: "Exness Raw Spread",
-    accountType: "RAW_SPREAD",
-    contractSize: 100_000,
-    minLot: 0.01,
-    lotStep: 0.01,
-    typicalSpreadPips: 0.1,
-    maxSpreadPips: 1.5,
-    commissionPerLotPerSide: 3.5,
-    slippagePips: 0.3,
-  },
 };
+
+export const DEFAULT_BROKER = "GENERIC";
 
 export interface RiskConfig {
   accountCurrency: "USD" | "MXN";

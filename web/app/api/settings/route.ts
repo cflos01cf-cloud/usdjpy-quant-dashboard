@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   const cur = (await db().from("settings").select("*").eq("id", 1).maybeSingle()).data ?? {};
   const next = {
     id: 1,
-    broker_preset: body.brokerPreset && BROKER_PRESETS[body.brokerPreset] ? body.brokerPreset : cur.broker_preset ?? "EXNESS_STANDARD",
+    broker_preset: body.brokerPreset && BROKER_PRESETS[body.brokerPreset] ? body.brokerPreset : cur.broker_preset ?? "GENERIC",
     risk: { ...(cur.risk ?? {}), ...(body.risk ?? {}) },
     signal: { ...(cur.signal ?? {}), ...(body.signal ?? {}) },
     news: { ...(cur.news ?? {}), ...(body.news ?? {}) },

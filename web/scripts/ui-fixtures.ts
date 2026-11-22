@@ -17,7 +17,7 @@ const m5all: Candle[] = JSON.parse(readFileSync(src, "utf8"));
 const agg = (s: Candle[], tf: number) => { const r: Candle[] = []; for (const c of s) { const t = c.time - (c.time % tf); const l = r.at(-1); if (l && l.time === t) { l.high = Math.max(l.high, c.high); l.low = Math.min(l.low, c.low); l.close = c.close; } else r.push({ ...c, time: t }); } return r; };
 // buscar un punto con una candidata de score alto para que la UI muestre todo
 let end = m5all.length;
-const settings = { brokerPreset: "EXNESS_STANDARD", broker: BROKER_PRESETS.EXNESS_STANDARD, risk: DEFAULT_RISK, signal: DEFAULT_SIGNAL, news: DEFAULT_NEWS };
+const settings = { brokerPreset: "GENERIC", broker: BROKER_PRESETS.GENERIC, risk: DEFAULT_RISK, signal: DEFAULT_SIGNAL, news: DEFAULT_NEWS };
 let best: { end: number; score: number } = { end, score: -1 };
 const full = { M5: m5all, M15: agg(m5all, 900), H1: agg(m5all, 3600), H4: agg(m5all, 14400), D1: agg(m5all, 86400) };
 const P = prepare(full);

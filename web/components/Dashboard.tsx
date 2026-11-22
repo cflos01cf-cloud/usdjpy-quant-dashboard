@@ -56,7 +56,7 @@ export default function Dashboard() {
       <div className="topbar">
         <div className="brand">
           <h1>USD/JPY Quant Engine</h1>
-          <span>intradía · Exness · TwelveData</span>
+          <span>intradía · señales y paper trading · TwelveData</span>
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <span className="muted" style={{ fontSize: 12 }}>

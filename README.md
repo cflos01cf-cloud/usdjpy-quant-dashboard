@@ -1,6 +1,6 @@
 # USD/JPY Quant Engine
 
-Motor cuantitativo intradía para USD/JPY: análisis multitemporal (D1→M1), Smart Money Concepts, 5 estrategias independientes, scoring 0-100, gestión de riesgo para Exness, alertas Telegram, paper trading y validación estadística (walk-forward, Monte Carlo, meta-labeling).
+Motor cuantitativo intradía para USD/JPY: análisis multitemporal (D1→M1), Smart Money Concepts, 5 estrategias independientes, scoring 0-100, gestión de riesgo, alertas Telegram, paper trading y validación estadística (walk-forward, Monte Carlo, meta-labeling).
 
 Arquitectura y decisiones: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
@@ -19,11 +19,11 @@ supabase/schema.sql
 1. **Supabase** (nuevo o existente): ejecuta `supabase/schema.sql` en el SQL Editor y agrega `usdjpy` en *Settings → API → Exposed schemas*. Todo vive en el esquema `usdjpy`, sin tocar `public`.
 2. **Telegram**: crea un bot con @BotFather y obtén tu `chat_id`.
 3. **Netlify**: nuevo sitio desde este repo, *Base directory* = `web`. Variables de entorno (ver `web/.env.example`):
-   `TWELVEDATA_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `ADMIN_TOKEN`, `PUBLIC_URL`, opcional `FRED_API_KEY`, `BROKER_PRESET` (`EXNESS_STANDARD` o `EXNESS_RAW`), `ACCOUNT_EQUITY`.
+   `TWELVEDATA_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `ADMIN_TOKEN`, `PUBLIC_URL`, opcional `FRED_API_KEY`, `ACCOUNT_EQUITY`.
 4. Despliega. La función `engine-cron` corre cada 5 min entre 06:00 y 21:00 UTC (≈ 617 créditos/día de TwelveData).
 5. Ciclo manual: `curl -X POST "$PUBLIC_URL/api/engine?force=1" -H "x-admin-token: $ADMIN_TOKEN"`.
 
-**Antes de operar**: verifica en tu terminal Exness spread, comisión y tamaño de contrato de tu tipo de cuenta y ajústalos en `web/lib/config.ts` (`BROKER_PRESETS`).
+**Sin broker conectado**: el sistema genera señales, alertas y paper trading; no envía órdenes. Los costos (spread, comisión, slippage) son un perfil genérico en `web/lib/config.ts`; ajústalos cuando elijas dónde ejecutar.
 
 Configuración en caliente (capital, riesgo, umbrales, ventanas de noticias):
 ```bash
