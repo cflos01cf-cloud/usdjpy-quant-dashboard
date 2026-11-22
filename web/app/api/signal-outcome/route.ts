@@ -16,7 +16,7 @@ function outcomeOf(status: string, r: number | null, fills: Fill[]): string {
   if (status !== "CLOSED") return status;
   const tps = fills.filter((f) => /^TP\d$/.test(f.reason)).map((f) => f.reason).sort();
   if (r !== null && r > 0.05) return tps.length ? `WIN_${tps[tps.length - 1]}` : "WIN";
-  if (r !== null && r < -0.05) return tps.length ? `LOSS_AFTER_${tps[tps.length - 1]}` : "LOSS";
+  if (r !== null && r < -0.05) return "LOSS";
   return "BREAKEVEN";
 }
 
