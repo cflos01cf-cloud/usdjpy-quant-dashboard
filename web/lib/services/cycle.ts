@@ -48,7 +48,13 @@ export async function runCycle(opts: { force?: boolean } = {}): Promise<CycleRes
   const inWindow = hourUtc >= ENGINE_WINDOW_UTC.start && hourUtc < ENGINE_WINDOW_UTC.end;
   if (isMarketClosed(now) || (!inWindow && !opts.force)) {
     const st: DataStatus = isMarketClosed(now) ? "MARKET_CLOSED" : "HISTORICAL";
-    await saveSnapshot(st, { status: st, generatedAt: now, session: sessionInfo(now), schedule: sessionScheduleCdmx(now), note: st === "MARKET_CLOSED" ? "Mercado FX cerrado" : "Fuera de la ventana operativa del motor" });
+    const rs = (await db().from("risk_state").select("state").eq("id", 1).maybeSingle()).data?.state ?? emptyRiskState(tradingDayKey(now), weekKey(now));
+    await saveSnapshot(st, {
+      status: st, generatedAt: now, session: sessionInfo(now), schedule: sessionScheduleCdmx(now),
+      note: st === "MARKET_CLOSED" ? "Mercado FX cerrado" : "Fuera de la ventana operativa del motor",
+      risk: { state: rs, config: settings.risk, gate: riskGate(rs, settings.risk, now) },
+      broker: settings.broker,
+    });
     return finish(st);
   }
   if (!apiKey) {
